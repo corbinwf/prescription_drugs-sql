@@ -2,7 +2,7 @@
 a. Which prescriber had the highest total number of claims (totaled over all drugs)? Report the npi and the total number of claims.
 */
 
--- SELECT * FROM prescription
+-- SELECT * FROM prescriber
 -- SELECT COUNT(DISTINCT(npi)) FROM prescription
 
 SELECT
@@ -11,7 +11,7 @@ SELECT
 FROM prescription
 GROUP BY npi
 ORDER BY totaled_over_all_drugs DESC
---LIMIT 1
+LIMIT 1
 
 
 /* 1.
@@ -25,7 +25,7 @@ SELECT
 	prescriber.specialty_description,
 	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescription
-	LEFT JOIN prescriber
+	INNER JOIN prescriber
 		USING (npi)
 GROUP BY 
 	npi,
@@ -43,11 +43,11 @@ SELECT
 	prescriber.specialty_description,
 	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescription
-	LEFT JOIN prescriber
+	INNER JOIN prescriber
 		USING (npi)
 GROUP BY prescriber.specialty_description
 ORDER BY totaled_over_all_drugs DESC
---LIMIT 1
+LIMIT 1
 
 
 /* 2.
@@ -61,9 +61,9 @@ SELECT
 	prescriber.specialty_description,
 	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescription
-	LEFT JOIN prescriber
+	INNER JOIN prescriber
 		USING (npi)
-	LEFT JOIN drug
+	INNER JOIN drug
 		USING (drug_name)
 WHERE drug.opioid_drug_flag = 'Y'
 GROUP BY prescriber.specialty_description
@@ -78,7 +78,7 @@ c. **Challenge Question:** Are there any specialties that appear in the prescrib
 -- SELECT * FROM prescription
 
 SELECT
-	prescriber.specialty_description
+	DISTINCT(prescriber.specialty_description)
 FROM prescriber
 	LEFT JOIN prescription
 		USING (npi)
@@ -91,11 +91,15 @@ d. **Difficult Bonus:** *Do not attempt until you have solved all other problems
 
 SELECT
 	prescriber.specialty_description,
-	SUM(CASE WHEN drug.opioid_drug_flag = 'Y' THEN prescription.total_claim_count ELSE 0 END)/SUM(prescription.total_claim_count)	AS pct_of_opioid_per_total_claim
+	ROUND(
+		SUM(CASE WHEN drug.opioid_drug_flag = 'Y' THEN prescription.total_claim_count ELSE 0 END)
+		/
+		SUM(prescription.total_claim_count)*100, 
+		2) AS pct_of_opioid_per_total_claim
 FROM prescription
-	LEFT JOIN prescriber
+	INNER JOIN prescriber
 		USING (npi)
-	LEFT JOIN drug
+	INNER JOIN drug
 		USING (drug_name)
 GROUP BY prescriber.specialty_description
 ORDER BY pct_of_opioid_per_total_claim DESC
@@ -111,7 +115,7 @@ SELECT
 	drug_name,
 	total_drug_cost
 FROM prescription
-	LEFT JOIN drug
+	INNER JOIN drug
 		USING (drug_name)
 ORDER BY total_drug_cost DESC
 
@@ -123,7 +127,9 @@ b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round
 
 SELECT
 	drug_name,
-	ROUND(AVG(total_drug_cost/total_day_supply), 2) AS cost_per_day
+	ROUND(
+		AVG(total_drug_cost/total_day_supply), 
+		2) AS cost_per_day
 FROM prescription
 GROUP BY drug_name
 ORDER BY cost_per_day DESC
