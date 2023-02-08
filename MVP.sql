@@ -4,11 +4,11 @@
 
 SELECT
 	npi,
-	COUNT(total_claim_count) AS totaled_over_all_drugs
+	SUM(total_claim_count) AS totaled_over_all_drugs
 FROM prescription
 GROUP BY npi
 ORDER BY totaled_over_all_drugs DESC
-LIMIT 1
+LIMIT 1;
 
 
 /* 
@@ -20,7 +20,7 @@ SELECT
 	prescriber.nppes_provider_first_name,
 	prescriber.nppes_provider_last_org_name,
 	prescriber.specialty_description,
-	COUNT(prescription.total_claim_count) AS totaled_over_all_drugs
+	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescription
 	INNER JOIN prescriber
 		USING (npi)
@@ -38,7 +38,7 @@ ORDER BY totaled_over_all_drugs DESC
 
 SELECT
 	prescriber.specialty_description,
-	COUNT(prescription.total_claim_count) AS totaled_over_all_drugs
+	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescriber
 	INNER JOIN prescription
 		USING (npi)
@@ -53,7 +53,7 @@ LIMIT 1
 
 SELECT
 	prescriber.specialty_description,
-	COUNT(prescription.total_claim_count) AS totaled_over_all_drugs
+	SUM(prescription.total_claim_count) AS totaled_over_all_drugs
 FROM prescriber
 	INNER JOIN prescription
 		USING (npi)
